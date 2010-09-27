@@ -15,15 +15,15 @@ class IO
 	end
 end
 
-class String
-	def shdump
-		"'#{gsub( /[\\']/, '\'\\\\\&\'')}'"
-	end
-end
-
 class File
 	def self.readall file
 		open( file) {|f| f.readall }
+	end
+end
+
+class String
+	def shdump
+		"'#{gsub( /[\\']/, '\'\\\\\&\'')}'"
 	end
 end
 
@@ -38,10 +38,6 @@ if Process.fork
 	$stderr.puts( {proc: 'c', connect: ARGV[0], args: ARGV[1]}.to_json)
 	exec 'ssh', ARGV[0], 'perl', '-e', File.readall( 's.pl').shdump, ARGV[1].shdump
 else
-	#$stdout.puts 'test'
-	#$stderr.print '>> '
-	#$stdin.each_line {|l| p eval( l); print '>> ' }
-
 	$stdin.reopen tos.first
 	tos.last.close
 	$stdout.reopen tor.last
