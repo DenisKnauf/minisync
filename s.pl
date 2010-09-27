@@ -1,22 +1,33 @@
 #!/usr/bin/env perl
 
-my $dir = shift @ARGV;
-$dir =~ /^(\/.*)\/([^\/]+)$/ or die( "{proc: \"s\", error: \"invalid_path_expression\", message: \"Path-Expression is invalid.\"}\n");
-($dir, my( $fexpr)) = ($1, $2);
+use strict;
+use warnings;
+$|++;
 
-print STDERR $fexpr;
+my%cmds = (file => 1, content => 2);
+
+my$dir = shift @ARGV;
+$dir =~ /^(\/.*)\/([^\/]+)$/ or die( "{proc: \"s\", error: \"invalid_path_expression\", message: \"Path-Expression is invalid.\"}\n");
+($dir, my$fexpr) = ($1, $2);
 
 chdir( $dir) or die( "{proc: \"s\", error: \"change_directory\", value: \"$dir\", message: \"$!\"}\n");
-opendir( my( $dh), '.') || die "{proc: \"s\", error: \"dir_not_found\", message: \"Directory not found.\"}\n";
-while( $filename = readdir( $dh)) {
-	print STDERR "{proc: \"s\", action: \"find\", file: \"$filename\"}\n";
+opendir( my$dh, '.') || die "{proc: \"s\", error: \"dir_not_found\", message: \"Directory not found.\"}\n";
+while( my$filename = readdir( $dh)) {
 	$filename =~ /$fexpr/ or next;
-	print pack( 'nN/(A*)', 1, $filename);
+	-f $filename or next;
+	print STDERR "s >> r\n";
+	print pack( 'nN/A*', $cmds{file}, $filename);
 	print STDERR "{proc: \"s\", action: \"open\", file: \"$filename\"}\n";
 	open F, $filename;
-	read STDIN, my $length, 4; # Was wenn < 4 ?
-	seek F, $length, SEEK_SET;
-	print pack( 'nN/(A*)', 2, $r)  while read( F, $r, 2048);
+	print STDERR "s << r\n";
+	read STDIN, my$length, 4; # Was wenn < 4 ?
+	$length = unpack 'N', $length;
+	print STDERR "s: seek $length\n";
+	seek F, $length, 0;
+	print STDERR "s >>>> r\n";
+ 	while( read( F, my$r, 2048)) {
+		print pack( 'nN/(A*)', $cmds{content}, $r);
+	}
 	print STDERR "{proc: \"s\", action: \"close\", file: \"$filename\"}\n";
 	close F;
 }

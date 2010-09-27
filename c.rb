@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+require 'json'
+
 class IO
 	def readall
 		buf = ''
@@ -25,15 +27,25 @@ class File
 	end
 end
 
-tor = IO.pipe
-tos = IO.pipe
+$tor = tor = IO.pipe
+$tos = tos = IO.pipe
 
-fork do
+if Process.fork
 	$stdin.reopen tor.first
+	tor.last.close
 	$stdout.reopen tos.last
+	tos.first.close
+	$stderr.puts( {proc: 'c', connect: ARGV[0], args: ARGV[1]}.to_json)
 	exec 'ssh', ARGV[0], 'perl', '-e', File.readall( 's.pl').shdump, ARGV[1].shdump
-end
+else
+	#$stdout.puts 'test'
+	#$stderr.print '>> '
+	#$stdin.each_line {|l| p eval( l); print '>> ' }
 
-$stdin.reopen tos.first
-$stdout.reopen tor.last
-exec 'perl', 'r.pl', ARGV[2].shdump
+	$stdin.reopen tos.first
+	tos.last.close
+	$stdout.reopen tor.last
+	tor.first.close
+	$stderr.puts( {proc: 'c', exec: 'reciever', destination: ARGV[2]}.to_json)
+	exec 'perl', 'r.pl', ARGV[2].shdump
+end
