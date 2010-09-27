@@ -43,5 +43,5 @@ else
 	$stdout.reopen tor.last
 	tor.first.close
 	$stderr.puts( {proc: 'c', exec: 'reciever', destination: ARGV[2]}.to_json)
-	exec 'perl', 'r.pl', ARGV[2].shdump
+	exec 'perl', 'r.pl', ARGV[2]
 end

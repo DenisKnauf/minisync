@@ -6,8 +6,8 @@ $|++;
 
 $SIG{CLD} = sub {
 	wait;
-	printf STDERR "{proc: \"r\", action: \"exit\", code: 1, error: \"child_died\"}\n";
-	exit 1;
+	printf STDERR "{proc: \"r\", action: \"exit\", code: $?, error: \"child_died\"}\n";
+	exit $?;
 };
 
 sub readcmd {
@@ -18,16 +18,15 @@ sub readcmd {
 	$data;
 }
 
+chdir $ARGV[0] or die( "{proc: \"r\", error: \"cannot_chdir\", exception: \"$!\"}\n");
 while( my$data = readcmd) {
 	(my$cmd, my$length) = unpack( 'nN', $data);
 	print STDERR "{cmd: $cmd, length: $length}\n";
 	read STDIN, $data, $length;
 	if( 1 == $cmd) {
-		print STDERR "{proc: \"r\", action: \"open\", file: \"$data\"}\n";
-		open( F, '>>', $data) or print STDERR ("{proc: \"r\", error: \"unable_to_open_file\", message: \"Can't open file <$data>.\"}\n");
-		my($dev,$ino,$mode,$nlink,$uid,$gid,$rdev,$size,
-       $atime,$mtime,$ctime,$blksize,$blocks) = stat F;
-		print pack( 'N', $size);
+		open( F, '>>', $data)  or  die( "{proc: \"r\", error: \"unable_to_open_file\", message: \"Can't open file <$data>.\"}\n");
+		my@stat = stat F;
+		print pack( 'N', $stat[7]);
 	}
 	elsif( 2 == $cmd) {
 		print F $data;
