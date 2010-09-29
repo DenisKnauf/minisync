@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'json'
+libexec = File.expand_path File.dirname( __FILE__)
+machine, source, destination = ARGV[0...3]
 
 class IO
 	def readall
@@ -35,13 +36,13 @@ if Process.fork
 	tor.last.close
 	$stdout.reopen tos.last
 	tos.first.close
-	$stderr.puts( {proc: 'c', connect: ARGV[0], args: ARGV[1]}.to_json)
-	exec 'ssh', ARGV[0], 'perl', '-e', File.readall( 's.pl').shdump, ARGV[1].shdump
+	$stderr.puts( {proc: 'c', machine: machine, source: source}.inspect)
+	exec 'ssh', machine, 'perl', '-e', File.readall( File.join( libexec, 's.pl')).shdump, source.shdump
 else
 	$stdin.reopen tos.first
 	tos.last.close
 	$stdout.reopen tor.last
 	tor.first.close
-	$stderr.puts( {proc: 'c', exec: 'reciever', destination: ARGV[2]}.to_json)
-	exec 'perl', 'r.pl', ARGV[2]
+	$stderr.puts( {proc: 'c', exec: 'reciever', destination: destination}.inspect)
+	exec 'perl', File.join( libexec, 'r.pl'), destination
 end
