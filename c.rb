@@ -36,13 +36,13 @@ if Process.fork
 	tor.last.close
 	$stdout.reopen tos.last
 	tos.first.close
-	$stderr.puts( {proc: 'c', machine: machine, source: source}.inspect)
+	$stderr.puts( {:proc => 'c', :machine => machine, :source => source}.inspect)
 	exec 'ssh', machine, 'perl', '-e', File.readall( File.join( libexec, 's.pl')).shdump, source.shdump
 else
 	$stdin.reopen tos.first
 	tos.last.close
 	$stdout.reopen tor.last
 	tor.first.close
-	$stderr.puts( {proc: 'c', exec: 'reciever', destination: destination}.inspect)
+	$stderr.puts( {:proc => 'c', :exec => 'reciever', :destination => destination}.inspect)
 	exec 'perl', File.join( libexec, 'r.pl'), destination
 end
