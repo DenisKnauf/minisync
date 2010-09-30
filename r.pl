@@ -5,31 +5,32 @@ use warnings;
 use POSIX qw(strftime);
 $|++;
 
-sub ts {
-	strftime '%Y-%m-%d %H:%M:%S', localtime;
-}
+END { wait; };
 
 $SIG{CLD} = sub {
 	wait;
-	#printf STDERR "{ts: \"".ts."\", proc: \"r\", action: \"exit\", code: $?, error: \"child_died\"}\n";
 	exit $?;
 };
 
-sub readcmd {
+sub mj {
+	%_ = @_;
+	'{ts:"'.strftime( '%Y-%m-%d %H:%M:%S', localtime).'", proc:"s", '.join( ', ', map "$_:\"$_{$_}\"", keys%_)."}\n";
+}
+
+sub readg {
 	my $data = '';
-	while( length( $data) < 6) {
-		read( STDIN, $data, 6-length($data), length($data)) or return(0);
+	while( length( $data) < $_[0]) {
+		read( STDIN, $data, $_[0]-length($data), length($data)) or return(0);
 	}
 	$data;
 }
 
-chdir $ARGV[0] or die( "{ts: \"".ts."\", proc: \"r\", error: \"cannot_chdir\", exception: \"$!\"}\n");
-while( my$data = readcmd) {
-	(my$cmd, my$length) = unpack( 'nN', $data);
-	#print STDERR "{ts: \"".ts."\", cmd: $cmd, length: $length}\n";
-	read STDIN, $data, $length;
+chdir $ARGV[0] or die( mj( error=>'cannot_chdir', exception=>$!));
+while( my$data = readg(6)) {
+	my( $cmd, $length) = unpack( 'nN', $data);
+	$data = readg $length;
 	if( 1 == $cmd) {
-		open( F, '>>', $data)  or  die( "{ts: \"".ts."\", proc: \"r\", error: \"unable_to_open_file\", message: \"Can't open file <$data>.\"}\n");
+		open( F, '>>', $data)  or  die( mj( error=>'unable_to_open_file', message=>"Can't open file <$data>"));
 		my@stat = stat F;
 		print pack( 'N', $stat[7]);
 	}
@@ -37,8 +38,7 @@ while( my$data = readcmd) {
 		print F $data;
 	}
 	else { 
-		die( "{ts: \"".ts."\", proc: \"r\", error: \"unknown_command\", command: $cmd}\n");
+		die( mj( error=>'unknown_command', command=>$cmd));
 	}
 }
-#print STDERR "{ts: \"".ts."\", proc: \"r\", exit: 0}\n";
 exit 0;

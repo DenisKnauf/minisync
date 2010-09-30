@@ -3,10 +3,6 @@
 libexec = File.expand_path File.dirname( __FILE__)
 machine, source, destination = ARGV[0...3]
 
-def ts
-	Time.now.strftime '%Y-%m-%d %H:%M:%S'
-end
-
 class IO
 	def readall
 		buf = ''
