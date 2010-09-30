@@ -31,5 +31,5 @@ while( my$filename = readdir( DH)) {
 	close F;
 }
 closedir DH;
-print STDERR "{ts: \"".ts."\", proc: \"s\", exit: 0}\n";
+#print STDERR "{ts: \"".ts."\", proc: \"s\", exit: 0}\n";
 exit( 0);

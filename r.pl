@@ -11,7 +11,7 @@ sub ts {
 
 $SIG{CLD} = sub {
 	wait;
-	printf STDERR "{ts: \"".ts."\", proc: \"r\", action: \"exit\", code: $?, error: \"child_died\"}\n";
+	#printf STDERR "{ts: \"".ts."\", proc: \"r\", action: \"exit\", code: $?, error: \"child_died\"}\n";
 	exit $?;
 };
 
@@ -26,7 +26,7 @@ sub readcmd {
 chdir $ARGV[0] or die( "{ts: \"".ts."\", proc: \"r\", error: \"cannot_chdir\", exception: \"$!\"}\n");
 while( my$data = readcmd) {
 	(my$cmd, my$length) = unpack( 'nN', $data);
-	print STDERR "{ts: \"".ts."\", cmd: $cmd, length: $length}\n";
+	#print STDERR "{ts: \"".ts."\", cmd: $cmd, length: $length}\n";
 	read STDIN, $data, $length;
 	if( 1 == $cmd) {
 		open( F, '>>', $data)  or  die( "{ts: \"".ts."\", proc: \"r\", error: \"unable_to_open_file\", message: \"Can't open file <$data>.\"}\n");
@@ -40,5 +40,5 @@ while( my$data = readcmd) {
 		die( "{ts: \"".ts."\", proc: \"r\", error: \"unknown_command\", command: $cmd}\n");
 	}
 }
-print STDERR "{ts: \"".ts."\", proc: \"r\", exit: 0}\n";
+#print STDERR "{ts: \"".ts."\", proc: \"r\", exit: 0}\n";
 exit 0;
