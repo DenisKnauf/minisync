@@ -2,11 +2,16 @@
 
 use strict;
 use warnings;
+use POSIX qw(strftime);
 $|++;
+
+sub ts {
+	strftime '%Y-%m-%d %H:%M:%S', localtime;
+}
 
 $SIG{CLD} = sub {
 	wait;
-	printf STDERR "{proc: \"r\", action: \"exit\", code: $?, error: \"child_died\"}\n";
+	printf STDERR "{ts: \"".ts."\", proc: \"r\", action: \"exit\", code: $?, error: \"child_died\"}\n";
 	exit $?;
 };
 
@@ -18,13 +23,13 @@ sub readcmd {
 	$data;
 }
 
-chdir $ARGV[0] or die( "{proc: \"r\", error: \"cannot_chdir\", exception: \"$!\"}\n");
+chdir $ARGV[0] or die( "{ts: \"".ts."\", proc: \"r\", error: \"cannot_chdir\", exception: \"$!\"}\n");
 while( my$data = readcmd) {
 	(my$cmd, my$length) = unpack( 'nN', $data);
-	print STDERR "{cmd: $cmd, length: $length}\n";
+	print STDERR "{ts: \"".ts."\", cmd: $cmd, length: $length}\n";
 	read STDIN, $data, $length;
 	if( 1 == $cmd) {
-		open( F, '>>', $data)  or  die( "{proc: \"r\", error: \"unable_to_open_file\", message: \"Can't open file <$data>.\"}\n");
+		open( F, '>>', $data)  or  die( "{ts: \"".ts."\", proc: \"r\", error: \"unable_to_open_file\", message: \"Can't open file <$data>.\"}\n");
 		my@stat = stat F;
 		print pack( 'N', $stat[7]);
 	}
@@ -32,8 +37,8 @@ while( my$data = readcmd) {
 		print F $data;
 	}
 	else { 
-		die( "{proc: \"r\", error: \"unknown_command\", command: $cmd}\n");
+		die( "{ts: \"".ts."\", proc: \"r\", error: \"unknown_command\", command: $cmd}\n");
 	}
 }
-print STDERR "{proc: \"r\", exit: 0}\n";
+print STDERR "{ts: \"".ts."\", proc: \"r\", exit: 0}\n";
 exit 0;
